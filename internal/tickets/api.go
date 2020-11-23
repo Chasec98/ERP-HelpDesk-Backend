@@ -1,8 +1,11 @@
 package tickets
 
 import (
+	"context"
 	"net/http"
 	"strconv"
+
+	"github.com/Chasec98/ERP-HelpDesk-Backend/pkg/pagination"
 
 	"github.com/go-chi/chi"
 
@@ -23,23 +26,34 @@ func TicketRouter(service Service) http.Handler {
 	api := api{
 		service: service,
 	}
+
 	r := chi.NewRouter()
+
 	r.Post("/", api.postTicket)
+
 	r.Put("/", api.putTicket)
+
 	r.Get("/{id}", api.getTicket)
+
+	paginated := r.Group(nil)
+	paginated.Use(pagination.PaginationCtx)
+	paginated.Get("/", api.getTickets)
+
 	return r
 }
 
 func (a api) postTicket(w http.ResponseWriter, r *http.Request) {
+	c := r.Context()
+
 	var ticket Ticket
 	err := tools.Bind(r, &ticket)
 	if err != nil {
-		tools.StringReponse(w, "could not parse body")
+		http.Error(w, "could not parse body", http.StatusBadRequest)
 		return
 	}
-	ticket, err = a.service.CreateTicket(ticket)
+	ticket, err = a.service.CreateTicket(c)
 	if err != nil {
-		tools.StringReponse(w, err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	tools.JSONResponse(w, ticket)
@@ -47,26 +61,39 @@ func (a api) postTicket(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a api) getTicket(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	ticketID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
-		tools.StringReponse(w, "provide valid ticket id")
+		http.Error(w, "Invalid Ticket ID", http.StatusBadRequest)
 		return
 	}
-	ticket, err := a.service.GetTicketByID(id)
+
+	c := context.WithValue(r.Context(), TicketCtxKey, Ticket{ID: ticketID})
+
+	ticket, err := a.service.GetTicketByID(c)
 	if err != nil {
-		tools.StringReponse(w, err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	tools.JSONResponse(w, ticket)
 }
 
 func (a api) putTicket(w http.ResponseWriter, r *http.Request) {
+	c := r.Context()
+
 	var ticket Ticket
 	err := tools.Bind(r, &ticket)
 	if err != nil {
-		tools.StringReponse(w, "could not parse body")
+		http.Error(w, "could not parse body", http.StatusBadRequest)
 		return
 	}
-	ticket, err = a.service.UpdateTicket(ticket)
+	ticket, err = a.service.UpdateTicket(c)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	tools.JSONResponse(w, ticket)
+}
+
+func (a api) getTickets(w http.ResponseWriter, r *http.Request) {
+
 }

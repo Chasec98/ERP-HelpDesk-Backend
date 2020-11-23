@@ -6,8 +6,10 @@ import (
 	"github.com/go-chi/chi"
 )
 
-func HealthRoutes(r chi.Router) {
+func HealthRouter() http.Handler {
+	r := chi.NewRouter()
 	r.Get("/", getHealth)
+	return r
 }
 
 func getHealth(w http.ResponseWriter, r *http.Request) {

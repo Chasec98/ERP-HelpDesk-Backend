@@ -29,6 +29,13 @@ func Connect() (*sql.DB, error) {
 	return conn, err
 }
 
+func ConvertBool(value bool) sql.NullBool {
+	return sql.NullBool{
+		Valid: true,
+		Bool:  value,
+	}
+}
+
 func ConvertInt(value int) sql.NullInt64 {
 	if value != 0 {
 		return sql.NullInt64{

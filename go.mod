@@ -7,4 +7,5 @@ require (
 	github.com/go-chi/cors v1.1.1
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/joho/godotenv v1.3.0
+	github.com/pkg/errors v0.9.1
 )

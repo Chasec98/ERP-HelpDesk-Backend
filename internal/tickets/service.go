@@ -1,10 +1,12 @@
 package tickets
 
+import "context"
+
 type Service interface {
-	CreateTicket(ticket Ticket) (Ticket, error)
-	UpdateTicket(ticket Ticket) (Ticket, error)
-	GetTicketByID(id int) (Ticket, error)
-	GetTickets() ([]Ticket, error)
+	CreateTicket(ctx context.Context) (Ticket, error)
+	UpdateTicket(ctx context.Context) (Ticket, error)
+	GetTicketByID(ctx context.Context) (Ticket, error)
+	GetTickets(ctx context.Context) ([]Ticket, error)
 }
 
 type service struct {
@@ -17,18 +19,18 @@ func NewService(repository Repository) Service {
 	}
 }
 
-func (s service) CreateTicket(ticket Ticket) (Ticket, error) {
-	return s.repository.CreateTicket(ticket)
+func (s service) CreateTicket(ctx context.Context) (Ticket, error) {
+	return s.repository.CreateTicket(ctx)
 }
 
-func (s service) UpdateTicket(ticket Ticket) (Ticket, error) {
-	return s.repository.UpdateTicket(ticket)
+func (s service) UpdateTicket(ctx context.Context) (Ticket, error) {
+	return s.repository.UpdateTicket(ctx)
 }
 
-func (s service) GetTicketByID(id int) (Ticket, error) {
-	return s.repository.GetTicketByID(id)
+func (s service) GetTicketByID(ctx context.Context) (Ticket, error) {
+	return s.repository.GetTicketByID(ctx)
 }
 
-func (s service) GetTickets() ([]Ticket, error) {
-	return s.repository.GetTickets()
+func (s service) GetTickets(ctx context.Context) ([]Ticket, error) {
+	return s.repository.GetTickets(ctx)
 }

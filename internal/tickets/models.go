@@ -4,18 +4,20 @@ import (
 	"database/sql"
 	"time"
 
-	customSQL "github.com/Chasec98/ERP-HelpDesk-Backend/pkg/sql"
+	SQLTools "github.com/Chasec98/ERP-HelpDesk-Backend/pkg/sql"
 )
 
+const TicketCtxKey = "tickets"
+
 type Ticket struct {
-	ID           int       `json:"id"`
-	AssignedToID int       `json:"assignedToId"`
-	CreatedByID  int       `json:"createdById"`
-	Subject      string    `json:"subject"`
-	Body         string    `json:"body"`
-	Solution     string    `json:"solution"`
-	CreatedDate  time.Time `json:"createdDate"`
-	ClosedDate   time.Time `json:"closedDate"`
+	ID           int    `json:"id"`
+	AssignedToID int    `json:"assignedToId"`
+	CreatedByID  int    `json:"createdById"`
+	Subject      string `json:"subject"`
+	Body         string `json:"body"`
+	Solution     string `json:"solution"`
+	CreatedDate  string `json:"createdDate"`
+	ClosedDate   string `json:"closedDate"`
 }
 
 type TicketSQL struct {
@@ -30,6 +32,15 @@ type TicketSQL struct {
 }
 
 func (t TicketSQL) ToTicket() Ticket {
+	createdDate := t.CreatedDate.Time.Format(time.RFC3339)
+	if t.CreatedDate.Time.IsZero() {
+		createdDate = ""
+	}
+	closedDate := t.ClosedDate.Time.Format(time.RFC3339)
+	if t.ClosedDate.Time.IsZero() {
+		closedDate = ""
+	}
+
 	return Ticket{
 		ID:           int(t.ID.Int64),
 		AssignedToID: int(t.AssignedToID.Int64),
@@ -37,20 +48,31 @@ func (t TicketSQL) ToTicket() Ticket {
 		Subject:      t.Subject.String,
 		Body:         t.Body.String,
 		Solution:     t.Solution.String,
-		CreatedDate:  t.CreatedDate.Time,
-		ClosedDate:   t.ClosedDate.Time,
+		CreatedDate:  createdDate,
+		ClosedDate:   closedDate,
 	}
 }
 
-func (t Ticket) ToSQL() TicketSQL {
+func (t Ticket) ToTicketSQL() TicketSQL {
+	var createdDateSQL = sql.NullTime{Valid: false}
+	createdDate, err := time.Parse(time.RFC3339, t.CreatedDate)
+	if err == nil {
+		createdDateSQL = sql.NullTime{Valid: true, Time: createdDate}
+	}
+	var closedDateSQL = sql.NullTime{Valid: false}
+	closedDate, err := time.Parse(time.RFC3339, t.ClosedDate)
+	if err == nil {
+		closedDateSQL = sql.NullTime{Valid: true, Time: closedDate}
+	}
+
 	return TicketSQL{
-		ID:           customSQL.ConvertInt(t.ID),
-		AssignedToID: customSQL.ConvertInt(t.AssignedToID),
-		CreatedByID:  customSQL.ConvertInt(t.CreatedByID),
-		Subject:      customSQL.ConvertString(t.Subject),
-		Body:         customSQL.ConvertString(t.Body),
-		Solution:     customSQL.ConvertString(t.Solution),
-		CreatedDate:  customSQL.ConvertTime(t.CreatedDate),
-		ClosedDate:   customSQL.ConvertTime(t.ClosedDate),
+		ID:           SQLTools.ConvertInt(t.ID),
+		AssignedToID: SQLTools.ConvertInt(t.AssignedToID),
+		CreatedByID:  SQLTools.ConvertInt(t.CreatedByID),
+		Subject:      SQLTools.ConvertString(t.Subject),
+		Body:         SQLTools.ConvertString(t.Body),
+		Solution:     SQLTools.ConvertString(t.Solution),
+		CreatedDate:  createdDateSQL,
+		ClosedDate:   closedDateSQL,
 	}
 }
