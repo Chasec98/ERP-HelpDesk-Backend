@@ -3,7 +3,6 @@ package users
 import (
 	"context"
 	"database/sql"
-	"strconv"
 
 	"github.com/Chasec98/ERP-HelpDesk-Backend/pkg/pagination"
 
@@ -22,9 +21,7 @@ type repository struct {
 }
 
 func NewRepository(db *sql.DB) Repository {
-	return repository{
-		db: db,
-	}
+	return repository{db: db}
 }
 
 func (r repository) CreateUser(ctx context.Context) (User, error) {
@@ -84,32 +81,60 @@ func (r repository) GetUsers(ctx context.Context) (pagination.Pagination, error)
 	query := `SELECT ID, FirstName, LastName, Username, Password, Email, PhoneNumber, Active FROM Users`
 	countQuery := `SELECT COUNT(*) FROM Users`
 	where := " WHERE 1 = 1"
-	var args []string
+	var args []interface{}
 	if userContext.Email != "" {
-		where += ", Email = ?" + userContext.Email
+		where += " and Email = ?" + userContext.Email
 		args = append(args, userContext.Email)
 	}
 	if userContext.FirstName != "" {
-		where += ", FirstName = ?"
+		where += " and FirstName = ?"
 		args = append(args, userContext.FirstName)
 	}
 	if userContext.LastName != "" {
-		where += ", LastName = ?"
+		where += " and LastName = ?"
 		args = append(args, userContext.LastName)
 	}
 	if userContext.ID != 0 {
-		where += ", ID = ?"
-		args = append(args, strconv.Itoa(userContext.ID))
+		where += " and ID = ?"
+		args = append(args, userContext.ID)
 	}
 	if userContext.PhoneNumber != "" {
-		where += ", PhoneNumber = ?"
+		where += " and PhoneNumber = ?"
 		args = append(args, userContext.PhoneNumber)
+	}
+	if userContext.Username != "" {
+		where += " and Username = ?"
+		args = append(args, userContext.Username)
+	}
+	if userContext.Password != "" {
+		where += " and Password = ?"
+		args = append(args, userContext.Password)
 	}
 
 	var ret = pagination.Pagination{
 		Offset: paginationContext.Offset,
 	}
-	rows, err := r.db.Query(query+where, args)
+
+	var total int
+	row := r.db.QueryRow(countQuery+where, args...)
+	err := row.Scan(&total)
+	if err != nil {
+		logger.Error.Println(err.Error())
+		return pagination.Pagination{}, err
+	}
+	ret.Total = total
+
+	where += " limit ? offset ?"
+	args = append(args, paginationContext.Limit)
+	args = append(args, paginationContext.Offset)
+
+	rows, err := r.db.Query(query+where, args...)
+	if err != nil {
+		logger.Error.Println(err.Error())
+		return pagination.Pagination{}, err
+	}
+	defer rows.Close()
+	var users []User
 	for rows.Next() {
 		var userSQL UserSQL
 		err := rows.Scan(&userSQL.ID, &userSQL.FirstName, &userSQL.LastName, &userSQL.Username, &userSQL.Password, &userSQL.Email, &userSQL.PhoneNumber, &userSQL.Active)
@@ -117,17 +142,10 @@ func (r repository) GetUsers(ctx context.Context) (pagination.Pagination, error)
 			logger.Error.Println(err.Error())
 			return pagination.Pagination{}, err
 		}
-		ret.Data = append(ret.Data, userSQL.ToUser())
+		users = append(users, userSQL.ToUser())
 		ret.Count++
 	}
-
-	var total int
-	row := r.db.QueryRow(countQuery, args)
-	err = row.Scan(&total)
-	if err != nil {
-		return pagination.Pagination{}, nil
-	}
-	ret.Total = total
+	ret.Data = users
 
 	return ret, nil
 }

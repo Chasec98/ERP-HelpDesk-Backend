@@ -6,7 +6,7 @@ type Pagination struct {
 	Offset int
 	Count  int
 	Total  int
-	Data   []interface{}
+	Data   interface{}
 }
 
 type PaginationContext struct {

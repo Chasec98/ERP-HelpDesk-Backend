@@ -18,9 +18,7 @@ type service struct {
 }
 
 func NewService(repository Repository) Service {
-	return service{
-		repository: repository,
-	}
+	return service{repository: repository}
 }
 
 func (s service) CreateUser(ctx context.Context) (User, error) {
@@ -36,5 +34,5 @@ func (s service) GetUserByID(ctx context.Context) (User, error) {
 }
 
 func (s service) GetUsers(ctx context.Context) (pagination.Pagination, error) {
-	return pagination.Pagination{}, nil
+	return s.repository.GetUsers(ctx)
 }

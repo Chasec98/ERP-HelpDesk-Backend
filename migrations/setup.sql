@@ -66,3 +66,14 @@ CREATE TABLE `UserRoles` (
 
 INSERT INTO `Roles` (`Name`)
 VALUES ('Non-User');
+
+INSERT INTO `Permissions` (`Name`)
+VALUES ('Read Tickets'),
+('Create Tickets'),
+('Edit Tickets'),
+('Read Users'),
+('Create Users'),
+('Edit Users'),
+('Read Roles'),
+('Create Roles'),
+('Edit Roles');

@@ -29,18 +29,20 @@ func (r repository) CreateTicket(ctx context.Context) (Ticket, error) {
 
 	query := `INSERT INTO Tickets (AssignedToID, CreatedByID, Subject, Body, Solution, CreatedDate, ClosedDate) VALUES (?,?,?,?,?,?,?)`
 	var ticketSQL = ticketContext.ToTicketSQL()
-	_, err := r.db.Exec(query, ticketSQL.AssignedToID, ticketSQL.CreatedByID, ticketSQL.Subject, ticketSQL.Body, ticketSQL.Solution, ticketSQL.CreatedDate, ticketSQL.ClosedDate)
+	row, err := r.db.Exec(query, ticketSQL.AssignedToID, ticketSQL.CreatedByID, ticketSQL.Subject, ticketSQL.Body, ticketSQL.Solution, ticketSQL.CreatedDate, ticketSQL.ClosedDate)
 	if err != nil {
 		logger.Error.Println(err.Error())
 		return Ticket{}, err
 	}
-	/*
-		ticketID, err := row.LastInsertId()
-		if err != nil {
-			logger.Error.Println(err.Error())
-			return Ticket{}, err
-		}
-	*/
+
+	ticketID, err := row.LastInsertId()
+	if err != nil {
+		logger.Error.Println(err.Error())
+		return Ticket{}, err
+	}
+
+	ticketContext.ID = int(ticketID)
+	ctx = context.WithValue(ctx, TicketCtxKey, ticketContext)
 
 	return r.GetTicketByID(ctx)
 }
