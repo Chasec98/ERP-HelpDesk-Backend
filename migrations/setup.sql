@@ -49,17 +49,17 @@ CREATE TABLE `Permissions` (
 );
 
 CREATE TABLE `RolesPermissions` (
-  `ID` int NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `RoleID` int NOT NULL,
   `PermissionID` int NOT NULL,
+  PRIMARY KEY (`RoleID`, `PermissionID`),
   FOREIGN KEY (`RoleID`) REFERENCES `Roles` (`ID`) ON DELETE CASCADE,
   FOREIGN KEY (`PermissionID`) REFERENCES `Permissions` (`ID`) ON DELETE CASCADE
 );
 
 CREATE TABLE `UserRoles` (
-  `ID` int NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `RoleID` int NOT NULL,
   `UserID` int NOT NULL,
+  PRIMARY KEY (`RoleID`, `UserID`),
   FOREIGN KEY (`RoleID`) REFERENCES `Roles` (`ID`) ON DELETE CASCADE,
   FOREIGN KEY (`UserID`) REFERENCES `Users` (`ID`)
 );

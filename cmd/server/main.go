@@ -3,6 +3,10 @@ package main
 import (
 	"net/http"
 
+	"github.com/Chasec98/ERP-HelpDesk-Backend/pkg/health"
+
+	"github.com/Chasec98/ERP-HelpDesk-Backend/internal/userroles"
+
 	"github.com/Chasec98/ERP-HelpDesk-Backend/internal/rolepermissions"
 
 	"github.com/Chasec98/ERP-HelpDesk-Backend/pkg/pagination"
@@ -17,8 +21,6 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/Chasec98/ERP-HelpDesk-Backend/internal/tickets"
-
-	"github.com/Chasec98/ERP-HelpDesk-Backend/internal/health"
 
 	"github.com/Chasec98/ERP-HelpDesk-Backend/internal/users"
 
@@ -40,9 +42,12 @@ func main() {
 
 	r := chi.NewRouter()
 
-	healthRouter := health.HealthRouter()
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "OPTIONS"},
+	}))
 
-	r.Mount("/healthz", healthRouter)
+	r.Get("/healthz", health.GetHealth)
 
 	loggingRoutes := r.Group(nil)
 	loggingRoutes.Use(middleware.Logger)
@@ -50,10 +55,8 @@ func main() {
 	//auth route here
 
 	authRoutes := loggingRoutes.Group(nil)
-	authRoutes.Use(cors.Handler(cors.Options{
-		AllowedOrigins: []string{"*"},
-		AllowedMethods: []string{"GET", "POST", "PUT", "OPTIONS"},
-	}))
+
+	//auth middleware here
 
 	userApi := users.NewApi(users.NewService(users.NewRepository(sqlConn)))
 	authRoutes.With(pagination.PaginationCtx).Get("/users", userApi.GetUsers)
@@ -76,9 +79,15 @@ func main() {
 	authRoutes.Get("/roles", rolesApi.GetRoles)
 	authRoutes.Get("/roles/{id}", rolesApi.GetRole)
 	authRoutes.Post("/roles", rolesApi.PostRole)
+	authRoutes.Delete("/roles/{id}", rolesApi.DeleteRole)
 
 	permissionsApi := permissions.NewApi(permissions.NewService(permissions.NewRepository(sqlConn)))
 	authRoutes.Get("/permissions", permissionsApi.GetPermissions)
+
+	userRolesApi := userroles.NewApi(userroles.NewService(userroles.NewRepository(sqlConn)))
+	authRoutes.Get("/users/{userID}/roles", userRolesApi.GetUserRoles)
+	authRoutes.Post("/users/{userID}/roles/{roleID}", userRolesApi.CreateUserRole)
+	authRoutes.Delete("/users/{userID}/roles/{roleID}", userRolesApi.DeleteUserRole)
 
 	http.ListenAndServe(":3000", r)
 }

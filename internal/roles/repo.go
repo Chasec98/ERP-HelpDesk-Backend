@@ -11,6 +11,7 @@ type Repository interface {
 	CreateRole(ctx context.Context) (Role, error)
 	GetRole(ctx context.Context) (Role, error)
 	GetRoles(ctx context.Context) ([]Role, error)
+	DeleteRole(ctx context.Context) error
 }
 
 type repository struct {
@@ -77,4 +78,14 @@ func (r repository) GetRoles(ctx context.Context) ([]Role, error) {
 	}
 
 	return roles, nil
+}
+
+func (r repository) DeleteRole(ctx context.Context) error {
+	roleContext := ctx.Value(RoleCtxKey).(Role)
+	roleSQL := roleContext.ToSQL()
+
+	query := `DELETE FROM Roles WHERE ID = ?`
+	_, err := r.db.Exec(query, roleSQL.ID)
+
+	return err
 }

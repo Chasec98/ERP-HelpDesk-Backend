@@ -14,6 +14,7 @@ type Api interface {
 	GetRole(w http.ResponseWriter, r *http.Request)
 	PostRole(w http.ResponseWriter, r *http.Request)
 	GetRoles(w http.ResponseWriter, r *http.Request)
+	DeleteRole(w http.ResponseWriter, r *http.Request)
 }
 
 type api struct {
@@ -71,4 +72,23 @@ func (a api) GetRoles(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tools.JSONResponse(w, roles)
+}
+
+func (a api) DeleteRole(w http.ResponseWriter, r *http.Request) {
+	roleID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		http.Error(w, "Invalid Role ID", http.StatusBadRequest)
+		return
+	}
+
+	c := context.WithValue(r.Context(), RoleCtxKey, Role{ID: roleID})
+
+	err = a.service.DeleteRole(c)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("deleted"))
 }
