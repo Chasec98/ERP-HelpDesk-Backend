@@ -20,8 +20,8 @@ func JSONResponse(w http.ResponseWriter, data interface{}) {
 	w.Write(jsonString)
 }
 
-func StringReponse(w http.ResponseWriter, data string) {
+func StringReponse(w http.ResponseWriter, data string, status int) {
 	w.Header().Set("Content-Type", "text/plain")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(status)
 	w.Write([]byte(data))
 }

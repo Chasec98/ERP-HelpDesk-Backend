@@ -6,10 +6,11 @@ CREATE TABLE `Users` (
   `ID` int NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `FirstName` varchar(255) NULL,
   `LastName` varchar(255) NULL,
-  `Username` varchar(255) NOT NULL,
-  `Password` varchar(255) NOT NULL,
   `Email` varchar(255) NULL,
-  `PhoneNumber` varchar(255) NULL
+  `PhoneNumber` varchar(255) NULL,
+  `Username` varchar(255) NULL,
+  `Password` varchar(255) NULL,
+  `Active` tinyint(1) NOT NULL
 );
 
 CREATE TABLE `Tickets` (
@@ -30,6 +31,7 @@ CREATE TABLE `Tickets` (
 
 CREATE TABLE `Sessions` (
   `ID` int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `SessionID` varchar(255) NOT NULL,
   `UserID` int NOT NULL,
   `Expires` datetime NOT NULL,
   FOREIGN KEY (`UserID`) REFERENCES `Users` (`ID`)
@@ -47,13 +49,31 @@ CREATE TABLE `Permissions` (
 );
 
 CREATE TABLE `RolesPermissions` (
-  `ID` int NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `RoleID` int NOT NULL,
   `PermissionID` int NOT NULL,
+  PRIMARY KEY (`RoleID`, `PermissionID`),
   FOREIGN KEY (`RoleID`) REFERENCES `Roles` (`ID`) ON DELETE CASCADE,
   FOREIGN KEY (`PermissionID`) REFERENCES `Permissions` (`ID`) ON DELETE CASCADE
 );
 
+CREATE TABLE `UserRoles` (
+  `RoleID` int NOT NULL,
+  `UserID` int NOT NULL,
+  PRIMARY KEY (`RoleID`, `UserID`),
+  FOREIGN KEY (`RoleID`) REFERENCES `Roles` (`ID`) ON DELETE CASCADE,
+  FOREIGN KEY (`UserID`) REFERENCES `Users` (`ID`)
+);
+
 INSERT INTO `Roles` (`Name`)
-VALUES ('In-Active'),
-('Non-User');
+VALUES ('Non-User');
+
+INSERT INTO `Permissions` (`Name`)
+VALUES ('Read Tickets'),
+('Create Tickets'),
+('Edit Tickets'),
+('Read Users'),
+('Create Users'),
+('Edit Users'),
+('Read Roles'),
+('Create Roles'),
+('Edit Roles');

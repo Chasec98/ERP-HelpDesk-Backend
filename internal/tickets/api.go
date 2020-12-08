@@ -1,6 +1,7 @@
 package tickets
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 
@@ -10,63 +11,81 @@ import (
 )
 
 type Api interface {
-	postTicket(w http.ResponseWriter, r *http.Request)
-	getTicket(w http.ResponseWriter, r *http.Request)
-	putTicket(w http.ResponseWriter, r *http.Request)
+	PostTicket(w http.ResponseWriter, r *http.Request)
+	GetTicket(w http.ResponseWriter, r *http.Request)
+	PutTicket(w http.ResponseWriter, r *http.Request)
+	GetTickets(w http.ResponseWriter, r *http.Request)
 }
 
 type api struct {
 	service Service
 }
 
-func TicketRouter(service Service) http.Handler {
-	api := api{
-		service: service,
-	}
-	r := chi.NewRouter()
-	r.Post("/", api.postTicket)
-	r.Put("/", api.putTicket)
-	r.Get("/{id}", api.getTicket)
-	return r
+func NewApi(service Service) Api {
+	return api{service: service}
 }
 
-func (a api) postTicket(w http.ResponseWriter, r *http.Request) {
+func (a api) PostTicket(w http.ResponseWriter, r *http.Request) {
 	var ticket Ticket
 	err := tools.Bind(r, &ticket)
 	if err != nil {
-		tools.StringReponse(w, "could not parse body")
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	ticket, err = a.service.CreateTicket(ticket)
+
+	c := context.WithValue(r.Context(), TicketCtxKey, ticket)
+
+	ticket, err = a.service.CreateTicket(c)
 	if err != nil {
-		tools.StringReponse(w, err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	tools.JSONResponse(w, ticket)
 	return
 }
 
-func (a api) getTicket(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+func (a api) GetTicket(w http.ResponseWriter, r *http.Request) {
+	ticketID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
-		tools.StringReponse(w, "provide valid ticket id")
+		http.Error(w, "Invalid Ticket ID", http.StatusBadRequest)
 		return
 	}
-	ticket, err := a.service.GetTicketByID(id)
+
+	c := context.WithValue(r.Context(), TicketCtxKey, Ticket{ID: ticketID})
+
+	ticket, err := a.service.GetTicketByID(c)
 	if err != nil {
-		tools.StringReponse(w, err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	tools.JSONResponse(w, ticket)
 }
 
-func (a api) putTicket(w http.ResponseWriter, r *http.Request) {
-	var ticket Ticket
-	err := tools.Bind(r, &ticket)
+func (a api) PutTicket(w http.ResponseWriter, r *http.Request) {
+	ticketID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
-		tools.StringReponse(w, "could not parse body")
+		http.Error(w, "Invalid Ticket ID", http.StatusBadRequest)
 		return
 	}
-	ticket, err = a.service.UpdateTicket(ticket)
+
+	var ticket Ticket
+	err = tools.Bind(r, &ticket)
+	if err != nil {
+		http.Error(w, "could not parse body", http.StatusBadRequest)
+		return
+	}
+	ticket.ID = ticketID
+
+	c := context.WithValue(r.Context(), TicketCtxKey, ticket)
+
+	ticket, err = a.service.UpdateTicket(c)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	tools.JSONResponse(w, ticket)
+}
+
+func (a api) GetTickets(w http.ResponseWriter, r *http.Request) {
+
 }
