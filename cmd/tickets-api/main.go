@@ -12,6 +12,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 
+	"github.com/Chasec98/ERP-HelpDesk-Backend/internal/comments"
 	"github.com/Chasec98/ERP-HelpDesk-Backend/internal/tickets"
 
 	customSQL "github.com/Chasec98/ERP-HelpDesk-Backend/pkg/sql"
@@ -53,6 +54,11 @@ func main() {
 	authRoutes.Get("/tickets/{id}", ticketsApi.GetTicket)
 	authRoutes.Put("/tickets/{id}", ticketsApi.PutTicket)
 	authRoutes.Post("/tickets", ticketsApi.PostTicket)
+
+	commentsApi := comments.NewApi(comments.NewService(comments.NewRepository(sqlConn)))
+	authRoutes.Get("/tickets/{ticketid}/comments/{id}", commentsApi.GetComment)
+	authRoutes.Get("/tickets/{ticketid}/comments", commentsApi.GetComments)
+	authRoutes.Post("/tickets/{ticketid}/comments", commentsApi.PostComment)
 
 	http.ListenAndServe(":3000", r)
 }

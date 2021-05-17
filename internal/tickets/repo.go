@@ -27,9 +27,9 @@ func NewRepository(db *sql.DB) Repository {
 func (r repository) CreateTicket(ctx context.Context) (Ticket, error) {
 	ticketContext := ctx.Value(TicketCtxKey).(Ticket)
 
-	query := `INSERT INTO Tickets (AssignedToID, CreatedByID, Subject, Body, Solution, CreatedDate, ClosedDate) VALUES (?,?,?,?,?,?,?)`
+	query := `INSERT INTO Tickets (AssignedToID, CreatedByID, Subject, Body, Solution, CreatedDate, ClosedDate) VALUES (?,?,?,?,?,UTC_TIMESTAMP(),?)`
 	var ticketSQL = ticketContext.ToTicketSQL()
-	row, err := r.db.Exec(query, ticketSQL.AssignedToID, ticketSQL.CreatedByID, ticketSQL.Subject, ticketSQL.Body, ticketSQL.Solution, ticketSQL.CreatedDate, ticketSQL.ClosedDate)
+	row, err := r.db.Exec(query, ticketSQL.AssignedToID, ticketSQL.CreatedByID, ticketSQL.Subject, ticketSQL.Body, ticketSQL.Solution, ticketSQL.ClosedDate)
 	if err != nil {
 		logger.Error.Println(err.Error())
 		return Ticket{}, err

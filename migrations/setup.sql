@@ -1,17 +1,6 @@
-CREATE DATABASE `hd-app`;
+CREATE DATABASE `tickets`;
 
-USE `hd-app`;
-
-CREATE TABLE `Users` (
-  `ID` int NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  `FirstName` varchar(255) NULL,
-  `LastName` varchar(255) NULL,
-  `Email` varchar(255) NULL,
-  `PhoneNumber` varchar(255) NULL,
-  `Username` varchar(255) NULL,
-  `Password` varchar(255) NULL,
-  `Active` tinyint(1) NOT NULL
-);
+USE `tickets`;
 
 CREATE TABLE `Tickets` (
   `ID` int NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -22,19 +11,33 @@ CREATE TABLE `Tickets` (
   `Solution` text NULL,
   `CreatedDate` datetime NOT NULL,
   `ClosedDate` datetime NULL,
-  FOREIGN KEY (`CreatedByID`) REFERENCES `Users` (`ID`),
-  FOREIGN KEY (`AssignedToID`) REFERENCES `Users` (`ID`),
   FULLTEXT KEY `Solution` (`Solution`),
   FULLTEXT KEY `Body` (`Body`),
   FULLTEXT KEY `Subject` (`Subject`)
 );
 
-CREATE TABLE `Sessions` (
+CREATE TABLE `Comments` (
   `ID` int NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  `SessionID` varchar(255) NOT NULL,
-  `UserID` int NOT NULL,
-  `Expires` datetime NOT NULL,
-  FOREIGN KEY (`UserID`) REFERENCES `Users` (`ID`)
+  `Text` longtext NOT NULL,
+  `CreatedByID` int NOT NULL,
+  `TicketID` int NOT NULL,
+  FOREIGN KEY (`TicketID`) REFERENCES `Tickets` (`ID`) ON DELETE CASCADE,
+  FULLTEXT KEY `Text` (`Text`)
+);
+
+CREATE DATABASE `users`;
+
+USE `users`;
+
+CREATE TABLE `Users` (
+  `ID` int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `FirstName` varchar(255) NULL,
+  `LastName` varchar(255) NULL,
+  `Email` varchar(255) NULL,
+  `PhoneNumber` varchar(255) NULL,
+  `Username` varchar(255) NULL,
+  `Password` varchar(255) NULL,
+  `Active` tinyint(1) NOT NULL
 );
 
 CREATE TABLE `Roles` (
