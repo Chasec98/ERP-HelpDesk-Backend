@@ -5,15 +5,7 @@ import (
 
 	"github.com/Chasec98/ERP-HelpDesk-Backend/pkg/health"
 
-	"github.com/Chasec98/ERP-HelpDesk-Backend/internal/userroles"
-
-	"github.com/Chasec98/ERP-HelpDesk-Backend/internal/rolepermissions"
-
 	"github.com/Chasec98/ERP-HelpDesk-Backend/pkg/pagination"
-
-	"github.com/Chasec98/ERP-HelpDesk-Backend/internal/permissions"
-
-	"github.com/Chasec98/ERP-HelpDesk-Backend/internal/roles"
 
 	"github.com/Chasec98/ERP-HelpDesk-Backend/pkg/logger"
 
@@ -21,8 +13,6 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/Chasec98/ERP-HelpDesk-Backend/internal/tickets"
-
-	"github.com/Chasec98/ERP-HelpDesk-Backend/internal/users"
 
 	customSQL "github.com/Chasec98/ERP-HelpDesk-Backend/pkg/sql"
 	"github.com/go-chi/chi"

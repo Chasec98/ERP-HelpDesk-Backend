@@ -10,7 +10,7 @@ COPY cmd cmd
 COPY internal internal
 COPY pkg pkg
 
-RUN go build cmd/server/main.go
+RUN go build cmd/users-api/main.go
 
 FROM alpine:3.12
 

@@ -20,8 +20,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 
-	"github.com/Chasec98/ERP-HelpDesk-Backend/internal/tickets"
-
 	"github.com/Chasec98/ERP-HelpDesk-Backend/internal/users"
 
 	customSQL "github.com/Chasec98/ERP-HelpDesk-Backend/pkg/sql"
@@ -63,12 +61,6 @@ func main() {
 	authRoutes.Get("/users/{id}", userApi.GetUser)
 	authRoutes.Put("/users/{id}", userApi.PutUser)
 	authRoutes.Post("/users", userApi.PostUser)
-
-	ticketsApi := tickets.NewApi(tickets.NewService(tickets.NewRepository(sqlConn)))
-	authRoutes.With(pagination.PaginationCtx).Get("/tickets", ticketsApi.GetTickets)
-	authRoutes.Get("/tickets/{id}", ticketsApi.GetTicket)
-	authRoutes.Put("/tickets/{id}", ticketsApi.PutTicket)
-	authRoutes.Post("/tickets", ticketsApi.PostTicket)
 
 	rolesPermissionsApi := rolepermissions.NewApi(rolepermissions.NewService(rolepermissions.NewRepository(sqlConn)))
 	authRoutes.Get("/roles/{roleID}/permissions", rolesPermissionsApi.GetRolesPermissions)
